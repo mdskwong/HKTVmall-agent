@@ -334,7 +334,8 @@ def send_chat_prompts(sys_prompt, user_prompt, llm, prefix=""):
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_prompt},
         ]
-    return llm.chat(message, prefix=prefix)
+    #return llm.chat(message, prefix=prefix)
+    return llm.chat(message)
 
 
 def get_project_root_path():

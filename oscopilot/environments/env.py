@@ -6,7 +6,7 @@ from oscopilot.environments import PythonJupyterEnv
 from oscopilot.environments import Shell
 from oscopilot.utils.schema import EnvState
 import subprocess
-
+import logging
 # Should this be renamed to OS or System?
 
 
@@ -67,6 +67,7 @@ class Env(BaseEnv):
         # 不用流式的话很简单，就是调一下lang的step就行了
         state = EnvState(command=code)
         lang = self.get_language(language)()  # 输入planner的节点类型即可
+        logging.info(f"[Env]_step: state :\n{state}")
         for output_line_dic in lang.step(code):
             if output_line_dic['format'] == 'active_line' or output_line_dic['content'] in ['', '\n']:
                 continue

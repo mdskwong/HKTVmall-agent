@@ -1,7 +1,7 @@
 from oscopilot.modules.base_module import BaseModule
 from oscopilot.utils.utils import send_chat_prompts
 import json
-
+import logging
 
 class FridayRetriever(BaseModule):
     """
@@ -12,8 +12,8 @@ class FridayRetriever(BaseModule):
     and utilizes the execution environments and tool library to fulfill its responsibilities.
     """
 
-    def __init__(self, prompt, tool_manager):
-        super().__init__()
+    def __init__(self, prompt, tool_manager, selected_llm_index=None):
+        super().__init__(selected_llm_index)
         self.prompt = prompt
         self.tool_manager = tool_manager
 
@@ -70,11 +70,14 @@ class FridayRetriever(BaseModule):
             task_description=task,
             tool_code_pair=tool_code_pair
         )
+
         response = send_chat_prompts(sys_prompt, user_prompt, self.llm)
         tool_name = self.extract_information(response, '<action>', '</action>')[0]
         code = ''
         if tool_name:
             code = self.tool_manager.get_tool_code(tool_name)
+            logging.info(f"[FridayRetriever]_tool_code_filter (Filters and retrieves the code for an tool relevant to the specified task):\ntool_name: {tool_name}\ntool_code:\n{code}") 
+        
         return code
 
     def retrieve_tool_description(self, tool_name):

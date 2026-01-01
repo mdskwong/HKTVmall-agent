@@ -7,23 +7,25 @@ from oscopilot.utils.llms import OpenAI, OLLAMA
 from oscopilot.environments import Env
 from oscopilot.utils import get_os_version
 from dotenv import load_dotenv
+import logging
 
 load_dotenv(dotenv_path='.env', override=True)
 MODEL_TYPE = os.getenv('MODEL_TYPE')
 
 class BaseModule:
-    def __init__(self):
+    def __init__(self, selected_llm=None):
         """
         Initializes a new instance of BaseModule with default values for its attributes.
         """
         if MODEL_TYPE == "OpenAI":
-            self.llm = OpenAI()
+            self.llm = OpenAI(selected_llm)
         elif MODEL_TYPE == "OLLAMA":
             self.llm = OLLAMA()
         # self.environment = PythonEnv()
         # self.environment = PythonJupyterEnv()
         self.environment = Env()
         self.system_version = get_os_version()
+        logging.info(f"[BaseModule]_init__: \nmodel: {MODEL_TYPE} - {self.llm.model_name}")
         
     def extract_information(self, message, begin_str='[BEGIN]', end_str='[END]'):
         """

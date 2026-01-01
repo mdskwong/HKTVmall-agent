@@ -15,8 +15,9 @@ load_dotenv(dotenv_path='.env', override=True)
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 OPENAI_ORGANIZATION = os.getenv('OPENAI_ORGANIZATION')
 
-EMBED_MODEL_TYPE = os.getenv('MODEL_TYPE')
-EMBED_MODEL_NAME = os.getenv('MODEL_NAME')
+EMBED_MODEL_TYPE = os.getenv('EMBED_MODEL_TYPE')
+EMBED_MODEL_NAME = os.getenv('EMBED_MODEL_NAME')
+import logging
 
 class ToolManager:
     """
@@ -52,7 +53,8 @@ class ToolManager:
     def __init__(self, generated_tool_repo_dir=None):
         # generated_tools: Store the mapping relationship between descriptions and tools (associated through task names)
         self.generated_tools = {}
-        self.generated_tool_repo_dir = generated_tool_repo_dir
+        # self.generated_tool_repo_dir = generated_tool_repo_dir
+        self.generated_tool_repo_dir = "/home/teem/Desktop/Project/Group6/OS-Copilot/oscopilot/tool_repository/generated_tools"
         
         with open(f"{self.generated_tool_repo_dir}/generated_tools.json") as f2:
             self.generated_tools = json.load(f2)
@@ -77,6 +79,7 @@ class ToolManager:
             embedding_function=embedding_function,
             persist_directory=self.vectordb_path,
         )
+        logging.info(f"[ToolManager]_init: \n{self.vectordb.embeddings}\n{self.vectordb._collection}")
         assert self.vectordb._collection.count() == len(self.generated_tools), (
             f"Tool Manager's vectordb is not synced with generated_tools.json.\n"
             f"There are {self.vectordb._collection.count()} tools in vectordb but {len(self.generated_tools)} tools in generated_tools.json.\n"
@@ -130,6 +133,8 @@ class ToolManager:
         """
         return self.generated_tools.keys()
     
+    def get_all_db_contents(self):
+        return self.vectordb.get()
 
     def get_tool_code(self, tool_name):
         """
@@ -176,11 +181,13 @@ class ToolManager:
         program_name = info["task_name"]
         program_code = info["code"]
         program_description = info["description"]
+        logging.info(f"[ToolManager]_add_new_tool: \nAdd: {program_name}:\t{program_description}")
         print(
             f"\033[33m {program_name}:\n{program_description}\033[0m"
         )
         # If this task code already exists in the tool library, delete it and rewrite
         if program_name in self.generated_tools:
+            logging.info(f"[ToolManager]_add_new_tool: \n Tool:{program_name} already exists. Rewriting!")
             print(f"\033[33mTool {program_name} already exists. Rewriting!\033[0m")
             self.vectordb._collection.delete(ids=[program_name])
         # Store the new task code in the vector database and the tool dictionary
@@ -248,6 +255,7 @@ class ToolManager:
         print(f"\033[33mTool Manager retrieving for {k} Tools\033[0m")
         # Retrieve descriptions of the top k related tasks.
         docs_and_scores = self.vectordb.similarity_search_with_score(query, k=k)
+        logging.info(f"[ToolManager]_retrieve_tool_name: docs_and_scores:\n{docs_and_scores}")
         print(
             f"\033[33mTool Manager retrieved tools: "
             f"{', '.join([doc.metadata['name'] for doc, _ in docs_and_scores])}\033[0m"

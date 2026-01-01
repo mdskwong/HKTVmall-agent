@@ -4,8 +4,16 @@ import logging
 from oscopilot.utils.utils import random_string, get_project_root_path
 import dotenv
 import sys
+import datetime
 
 dotenv.load_dotenv(dotenv_path='.env', override=True)
+MODEL_TYPE = os.getenv('MODEL_TYPE')
+MODEL_NAME = os.getenv('MODEL_NAME')
+OPENAI_BASE_URL = os.getenv('OPENAI_BASE_URL')
+
+EMBED_MODEL_TYPE = os.getenv('EMBED_MODEL_TYPE')
+EMBED_MODEL_NAME = os.getenv('EMBED_MODEL_NAME')
+MODEL_SERVER = os.getenv('MODEL_SERVER')
 
 
 class Config:
@@ -60,7 +68,8 @@ def setup_config():
     parser.add_argument('--query_file_path', type=str, default='', help='Enter the path of the files for your task or leave empty if not applicable')
     parser.add_argument('--max_repair_iterations', type=int, default=3, help='Sets the max number of repair attempts. Default is 3.')
     parser.add_argument('--logging_filedir', type=str, default='log', help='log path')
-    parser.add_argument('--logging_filename', type=str, default='temp0325.log', help='log file name')
+    log_file_name = f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    parser.add_argument('--logging_filename', type=str, default=log_file_name, help='log file name')
     parser.add_argument('--logging_prefix', type=str, default=random_string(16), help='log file prefix')
     parser.add_argument('--score', type=int, default=8, help='critic score > score => store the tool')
 
@@ -100,6 +109,11 @@ def setup_config():
         level=logging.INFO,
         format=f'[{args.logging_prefix}] %(asctime)s - %(levelname)s - %(message)s'
     )
+    llm_model = f"Current using model is {MODEL_TYPE}||{MODEL_NAME}||{OPENAI_BASE_URL}"
+    embbed_model = f"Current using embbed model is {EMBED_MODEL_TYPE}||{EMBED_MODEL_NAME}||{MODEL_SERVER}"
+    # logging.info(llm_model)
+    # logging.info(embbed_model)
+    logging.info(f"args: {args}")
 
     return args
 

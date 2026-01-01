@@ -9,7 +9,7 @@ import logging
 
 
 
-class FridayExecutor(BaseModule):
+class FridayWebExecutor(BaseModule):
     """
     A modules within the system responsible for executing tools based on prompts and maintaining the tool library.
 
@@ -19,8 +19,8 @@ class FridayExecutor(BaseModule):
     for tool execution guidance.
     """
 
-    def __init__(self, prompt, tool_manager, max_iter=3):
-        super().__init__()
+    def __init__(self, prompt, tool_manager, max_iter=3, selected_llm_index=None):
+        super().__init__(selected_llm_index)
         self.prompt = prompt
         self.tool_manager = tool_manager
         self.max_iter = max_iter
@@ -52,7 +52,7 @@ class FridayExecutor(BaseModule):
                 - invoke (str): The specific logic or command to invoke the generated tool.
         """
         relevant_code = json.dumps(relevant_code)
-        logging.info(f"[FridayExcutor]_generate_tool: (type):relevant_code: ({tool_type}):{relevant_code}") 
+        logging.info(f"[FridayWebExcutor]_generate_tool (Before): To use relevant code and send to LLM to generate a tool for specific task\ntask_name:({task_name}) task_description:({task_description}) tool_type: ({tool_type})\npre_tasks_info:({pre_tasks_info})\nrelevant_code:{relevant_code}") 
         if tool_type == 'Python':
             sys_prompt = self.prompt['_SYSTEM_PYTHON_SKILL_AND_INVOKE_GENERATE_PROMPT']
             user_prompt = self.prompt['_USER_PYTHON_SKILL_AND_INVOKE_GENERATE_PROMPT'].format(
@@ -63,24 +63,15 @@ class FridayExecutor(BaseModule):
                 pre_tasks_info=pre_tasks_info,
                 relevant_code=relevant_code
             )
-        else:
-            sys_prompt = self.prompt['_SYSTEM_SHELL_APPLESCRIPT_GENERATE_PROMPT']
-            user_prompt = self.prompt['_USER_SHELL_APPLESCRIPT_GENERATE_PROMPT'].format(
-                system_version=self.system_version,
-                task_description=task_description,
-                working_dir= self.environment.working_dir,
-                task_name=task_name,
-                pre_tasks_info=pre_tasks_info,
-                Type=tool_type
-            )
 
         create_msg = send_chat_prompts(sys_prompt, user_prompt, self.llm)
         code = self.extract_code(create_msg, tool_type)
+        code = re.sub(r'<invoke>.*?</invoke>', '', code, flags=re.DOTALL)
         if tool_type == 'Python':
             invoke = self.extract_information(create_msg, begin_str='<invoke>', end_str='</invoke>')[0]
         else:
             invoke = ''
-        logging.info(f"[FridayExcutor]_generate_tool: \ncode:{code}\ninvoke:{invoke}") 
+        logging.info(f"[FridayWebExcutor]_generate_tool (After): \ncode:{code}\ninvoke:{invoke}") 
         return code, invoke
 
     def execute_tool(self, code, invoke, node_type):
@@ -166,7 +157,7 @@ class FridayExecutor(BaseModule):
         )
         response = send_chat_prompts(sys_prompt, user_prompt, self.llm)
         judge_json = self.extract_json_from_string(response)
-        logging.info(f"[FridayExcutor]_judge_tool: judge_json: {judge_json}") 
+        logging.info(f"[FridayWebExcutor]_judge_tool: judge_json: {judge_json}") 
         print("************************<judge_json>**************************")
         print(judge_json)
         print("************************</judge_json>*************************")
@@ -230,6 +221,7 @@ class FridayExecutor(BaseModule):
             )
         amend_msg = send_chat_prompts(sys_prompt, user_prompt, self.llm)
         new_code = self.extract_python_code(amend_msg)
+        new_code = re.sub(r'<invoke>.*?</invoke>', '', new_code, flags=re.DOTALL)
         invoke = self.extract_information(amend_msg, begin_str='<invoke>', end_str='</invoke>')[0]
         return new_code, invoke
 

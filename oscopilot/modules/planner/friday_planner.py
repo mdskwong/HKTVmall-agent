@@ -14,8 +14,8 @@ class FridayPlanner(BaseModule):
 
     The `FridayPlanner` uses a combination of tool descriptions, environmental state, and language learning models to dynamically create and adjust plans for task execution. It maintains a tool graph to manage task dependencies and execution order, ensuring that tasks are executed in a sequence that respects their interdependencies.
     """
-    def __init__(self, prompt):
-        super().__init__()
+    def __init__(self, prompt, selected_llm_index=None):
+        super().__init__(selected_llm_index)
         self.tool_num = 0
         self.tool_node = {}
         self.prompt = prompt
@@ -64,12 +64,13 @@ class FridayPlanner(BaseModule):
         )
         response = send_chat_prompts(sys_prompt, user_prompt, self.llm, prefix="Overall")
         decompose_json = self.extract_json_from_string(response)
+        logging.info(f"[FridayPlanner]_decompose_task: (extract json from LLM raw)\n{response}")
         # Building tool graph and topological ordering of tools
         if decompose_json != 'No JSON data found in the string.':
             self.create_tool_graph(decompose_json)
             self.topological_sort()
         else:
-            print(response)
+            #print(response)
             print('No JSON data found in the string.')
             sys.exit()
 
@@ -94,6 +95,7 @@ class FridayPlanner(BaseModule):
             of tools within the graph.
         """
         # current_task information
+        logging.info(f"[FridayPlanner]_replan_task")
         current_tool = self.tool_node[current_task]
         current_task_description = current_tool.description
         relevant_tool_description_pair = json.dumps(relevant_tool_description_pair)
@@ -133,13 +135,16 @@ class FridayPlanner(BaseModule):
         Side Effects:
             Updates the information of the specified tool node within the tool graph.
         """
+        logging.info(f"[FridayPlanner]_update_tool")
         if return_val:
             if node_type=='Code':
                 return_val = self.extract_information(return_val, "<return>", "</return>")
-                print("************************<return>**************************")
-                logging.info(return_val)
+                print("***[FridayPlanner]_update_tool***<return>**************************")
                 print(return_val)
-                print("************************</return>*************************")  
+                print("***[FridayPlanner]_update_tool***<return>**************************")
+                logging.info("***[FridayPlanner]_update_tool***<return>**************************")
+                logging.info(return_val)
+                logging.info("***[FridayPlanner]_update_tool***<return>**************************")
             if return_val != 'None':
                 self.tool_node[tool]._return_val = return_val
         if relevant_code:
@@ -197,6 +202,7 @@ class FridayPlanner(BaseModule):
             self.tool_graph[task_name] = task_dependencies
             for pre_tool in self.tool_graph[task_name]:
                 self.tool_node[pre_tool].next_action[task_name] = task_description
+        logging.info(f"[FridayPlanner]_create_tool_graph: \n {self.tool_graph}")
     
     def add_new_tool(self, new_task_json, current_task):
         """
@@ -215,6 +221,7 @@ class FridayPlanner(BaseModule):
             Updates the tool graph and nodes to include the new tool and its dependencies.
             Modifies the dependencies of the current task to include the new tool.
         """
+        logging.info(f"[FridayPlanner]_add_new_tool")
         for task_name, task_info in new_task_json.items():
             self.tool_num += 1
             task_description = task_info['description']
@@ -273,7 +280,7 @@ class FridayPlanner(BaseModule):
                 in_degree[dependent] -= 1
                 if in_degree[dependent] == 0:
                     queue.append(dependent)
-
+        logging.info(f"[FridayPlanner]_topological_sort:\ngraph: {graph}")
         # Check if topological sort is possible (i.e., no cycle)
         if len(self.sub_task_list) == len(graph):
             print("topological sort is possible")
