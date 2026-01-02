@@ -119,14 +119,6 @@ Join our community to connect with other enthusiasts, researchers and developers
 
 ## 👨‍💻‍ Contributing
 
-**Visit [the roadmap](./docs/roadmap.md) to preview what the community is working on and become a contributor!**
-
-<a href="https://github.com/OS-Copilot/OS-Copilot/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=OS-Copilot/OS-Copilot" />
-</a>
-
-<!-- Made with [contrib.rocks](https://contrib.rocks). -->
-
 ## 🛡 Disclaimer
 
 OS-Copilot is provided "as is" without warranty of any kind. Users assume full responsibility for any risks associated with its use, including **potential data loss** or **changes to system settings**. The developers of OS-Copilot are not liable for any damages or losses resulting from its use. Users must ensure their actions comply with applicable laws and regulations.
