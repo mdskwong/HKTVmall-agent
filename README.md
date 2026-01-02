@@ -112,11 +112,6 @@ For comprehensive guidelines on deploying API services, please refer to the [OS-
 
 ## 🏫 Community
 
-Join our community to connect with other enthusiasts, researchers and developers:
-
-- **[Discord](https://discord.com/invite/rXS2XbgfaD)**: Join our Discord server for real-time discussions and support.
-- **[Twitter](https://twitter.com/oscopilot)**: Follow our Twitter to get latest new or tag us to share your demos!
-
 ## 👨‍💻‍ Contributing
 
 ## 🛡 Disclaimer
@@ -135,9 +130,3 @@ OS-Copilot is provided "as is" without warranty of any kind. Users assume full r
 ```
 
 ## 📬 Contact
-
-If you have any inquiries, suggestions, or wish to contact us for any reason, we warmly invite you to email us at wuzhiyong@pjlab.org.cn.
-
-## Star History
-
-![Star History Chart](https://api.star-history.com/svg?repos=OS-Copilot/OS-Copilot&type=Date)
